@@ -131,6 +131,7 @@ pub fn menu(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
     let current = app.session.active().and_then(|s| s.symmetry.clone());
     let resp = icons::button_with_icon_size(ui, "painting-symmetry", 24.0, 14.0, current.is_some(), tl!("Set painting symmetry options"));
     let resp = crate::brush_picker::named(resp, "Set painting symmetry options");
+    let clicked = resp.clicked();
     egui::Popup::menu(&resp).show(|ui| {
         ui.set_min_width(220.0);
         widgets::menu_scroll(ui, |ui| {
@@ -184,6 +185,11 @@ pub fn menu(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
             }
         });
     });
+    // Native input paths can consume the popup toggle while the options bar is rebuilt. Keep the
+    // regular Popup::menu behavior, but ensure a direct click cannot become a no-op.
+    if clicked && !egui::Popup::is_id_open(ui.ctx(), resp.id) {
+        egui::Popup::open_id(ui.ctx(), resp.id);
+    }
 }
 
 fn rotation_handle(p: PresetSymmetry, size: [f64; 2]) -> [f64; 2] {
